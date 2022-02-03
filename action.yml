@@ -1,0 +1,34 @@
+name: "Solana"
+description: "Install Solana and Anchor"
+
+inputs:
+  solana-version:
+    description: "Solana version"
+    required: true
+  anchor-version:
+    description: "Anchor version"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v2
+    - name: Install Solana
+      shell: sh
+      run: |
+        echo Installing Solana v${{ inputs.solana-version }}...
+        sh -c "$(curl -sSfL "https://release.solana.com/v${{ inputs.solana-version }}/install")"
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+        echo Configuring bpf toolchain...
+        (cd "$HOME/.local/share/solana/install/active_release/bin/sdk/bpf/scripts"; ./install.sh)
+    - name: Install Anchor
+      shell: sh
+      run: |
+        npm install --global "@project-serum/anchor-cli@${{ inputs.anchor-version }}"
+        echo "$(npm root --global)/@project-serum/anchor-cli" >> "$GITHUB_PATH"
+    - name: Print version
+      shell: sh
+      run: |
+        solana -V
+        anchor -V
